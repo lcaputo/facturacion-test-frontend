@@ -1,0 +1,36 @@
+<div class="content">
+
+    <mat-spinner *ngIf="isLoading"></mat-spinner>
+
+    <div class="auth" *ngIf="!isLoading">
+        <h3 class="bold">Formulario de Registro</h3>
+        <hr>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Nombre Completo</mat-label>
+                <input matInput formControlName="name">
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="w-100">
+                <mat-label>NIT ó CC</mat-label>
+                <input type="number" matInput formControlName="nit">
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Correo</mat-label>
+                <input matInput formControlName="email">
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Contraseña</mat-label>
+                <input matInput type="password" formControlName="password">
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="w-100">
+                <mat-label>Confirmar Contraseña</mat-label>
+                <input matInput type="password" formControlName="password_confirmation">
+            </mat-form-field>
+            <br>
+            <button type="submit" [disabled]="form.invalid || isLoading" class="w-100" mat-raised-button
+                color="primary">Registrar</button>
+        </form>
+        <br>
+        <a [routerLink]="['/login/']">Iniciar sesión</a>
+    </div>
+</div>
