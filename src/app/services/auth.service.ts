@@ -35,7 +35,7 @@ export class AuthService {
       .post<UserResponse>(`${environment.API_URL}/login`, authData)
       .pipe(
         map((user: UserResponse) => {
-          this.saveLocalStorage(user);
+          this.saveInSessionStorage(user);
           this.user.next(user);
           console.log(user);
           return user;
@@ -45,13 +45,13 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
     this.user.next(null!);
     this.router.navigate(['/login']);
   }
 
   private checkToken(): void {
-    const user = JSON.parse(localStorage.getItem('user')!) || null;
+    const user = JSON.parse(sessionStorage.getItem('user')!) || null;
 
     if (user) {
       const isExpired = helper.isTokenExpired(user.token);
@@ -64,9 +64,22 @@ export class AuthService {
     }
   }
 
-  private saveLocalStorage(user: UserResponse): void {
+  public isTokenExpired() {
+    const user = JSON.parse(sessionStorage.getItem('user') || '');
+    if (user) {
+      const isExpired = helper.isTokenExpired(user.token);
+      if (isExpired) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private saveInSessionStorage(user: UserResponse): void {
     const { userId, message, ...rest } = user;
-    localStorage.setItem('user', JSON.stringify(rest));
+    sessionStorage.setItem('user', JSON.stringify(rest));
   }
 
   private handlerError(err:any): Observable<never> {
@@ -84,7 +97,7 @@ export class AuthService {
       .post<UserResponse>(`${environment.API_URL}/singup`, data)
       .pipe(
         map((user: UserResponse) => {
-          this.saveLocalStorage(user);
+          this.saveInSessionStorage(user);
           console.log(user);
           return user;
         }),
@@ -93,7 +106,7 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    const user = localStorage.getItem('user');
+    const user = sessionStorage.getItem('user');
     console.log('usuario',user)
     return (user !== null && user !== '') ? true : false;
   }

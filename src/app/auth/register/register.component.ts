@@ -2,6 +2,7 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Component, OnInit } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-register',
@@ -17,6 +18,7 @@ export class RegisterComponent implements OnInit {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
+    private _snackBar: MatSnackBar,
   ) { }
 
   ngOnInit(): void {
@@ -28,11 +30,11 @@ export class RegisterComponent implements OnInit {
         Validators.required
       ]],
       email: ['', [
-          Validators.required, 
-          Validators.email
+        Validators.required,
+        Validators.email
       ]],
       password: ['', [
-          Validators.required
+        Validators.required
       ]],
       password_confirmation: ['', [
         Validators.required
@@ -40,14 +42,24 @@ export class RegisterComponent implements OnInit {
     })
   }
 
+  openSnackBar(message: string, action: string) {
+    this._snackBar.open(message, action);
+  }
+
   onSubmit() {
     this.isLoading = true;
     console.log(this.form.value)
     this.auth.singup(this.form.value).subscribe(
-        (res) => {console.log('logged !'); this.isLoading = false; this.auth.logout(); this.router.navigate(['login'])},
-        (err) => {console.log(err); this.isLoading = false;}
+      (res) => {
+        console.log('logged !');
+        this.isLoading = false;
+        this.auth.logout();
+        this.router.navigate(['login']);
+        this.openSnackBar('Usuario Creado !  Ahora Inicia Sesión', 'ok');
+      },
+      (err) => { console.log(err); this.isLoading = false; }
     )
   }
-    
+
 }
 
