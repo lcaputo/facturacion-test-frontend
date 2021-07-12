@@ -20,17 +20,22 @@ export class AppService {
   private httpMultipartOption: any;
   constructor(private http: HttpClient, private auth: AuthService, private router: Router) { this.getHeaders(); }
 
+  // GENERAR ENCABEZADOS CON EL TOKEN INCRUSTADO
   getHeaders() {
     this.token = sessionStorage.getItem('user')!;
     this.httpOptions = { headers: new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' +  JSON.parse(this.token).token }) };
   }
 
+  // CERRAR SESIÓN
   clearSession() {
     this.auth.logout();
+    // REDIRIGIR AL LOGIN
     this.router.navigate(['/login']);
     swal.fire('Error', 'Su sesión ha expirado', 'error');
   }
   
+  // OPTIMIZACIÓN DE FUNCIONES PARA HACER PETICIONES HTTP
+
   //GET
   get(ruta: string):any {
       if (this.auth.isAuthenticated()) { 

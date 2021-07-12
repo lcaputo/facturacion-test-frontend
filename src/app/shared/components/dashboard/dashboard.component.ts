@@ -8,7 +8,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { AppService } from 'src/app/services/app.service';
 import swal from 'sweetalert2';
 
-
+// INTERFACE FACTURA
 export interface Bill {
   id                        : number;
   active                    : number;
@@ -20,7 +20,7 @@ export interface Bill {
   created_at                : string;
   updated_at                : string;
 }
-
+// INTERFACE PRODUCTO
 export interface Product {
   id                        : number;
   active                    : number;
@@ -38,6 +38,7 @@ export interface Product {
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
 
+  // VARIABLES
   public productForm!       : FormGroup;
   public billForm!          : FormGroup;
   public clientForm!        : FormGroup;
@@ -54,10 +55,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   public productSearch      : string = '';
   public billSearch         : string = '';
 
-
-    displayedBillColumns: string[] = ['id', 'employee', 'client', 'total', 'created_at', 'actions'];
+    // CREAR TABLA DE FACTURACIÓN
     billDataSource = new MatTableDataSource();
+    // COLUMNAS QUE SE MOSTRARAN EN LA TABLA PRINCIPAL DE FACTURACIÓN
+    displayedBillColumns: string[] = ['id', 'employee', 'client', 'total', 'created_at', 'actions'];
+    // SELECTOR REFERENCIA CLASIFICADOR TABLA FACTURACIÓN
     @ViewChild('billTable') billSort!: MatSort;
+    // SELECTOR REFERENCIA TABLA PAGINADOR FACTURACIÓN
     @ViewChild('billPaginator') billPaginator!: MatPaginator;
 
     displayedProductColumns: string[] = ['id', 'name', 'price', 'actions'];
@@ -73,7 +77,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private service: AppService,
   ) { }
 
+  // ACCIONES AL INICIAR EL COMPONENTE
   ngOnInit(): void {
+    // LISTAR FACTURAS
     this.getBills();
     // FORMULARIO DE PRODUCTOS
     this.productForm = this.fb.group({
@@ -112,22 +118,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     })
   }
 
+  // MÉTODO QUE SE EJECUTA AL ENVIAR EL FORMULARIO DE FACTURACIÓN
   public submitBill() {
     console.log('Submit Bill', this.clientForm.value);
+    // VARIABLES DENTRO DEL METODO
     let client_id   : number;
     let employee_id : number;
     let price       : number = this.sumTotal();
     let bill_id     : number;
+    // VALIDAR FORMULARIO
     if ( this.clientForm.valid ) {
+      // VALIDAR QUE EL CARRITO ESTÁ LLENO, VERIFICANDO EL PRECIO TOTAL
       if ( this.sumTotal() > 0 ) {
         this.loadingBills = true;
         document.getElementById('closeButton')?.click()
+        // CREAR CLIENTE NUEVO
         this.service.post('/client/create', this.clientForm.value).subscribe(
           (res:any) => {
             client_id = res.client.id
+            // PEDIR DATOS DEL USUARIO QUE TIENE SESIÓN INICIADA
             this.service.get('/me').subscribe(
               (res:any) => {
                 employee_id = res.id
+                // LLENAR FORMULARIO PARA PETICION DE CREAR FACTURA
                 this.billForm.patchValue({
                   employee_id: employee_id,
                   client_id: client_id,
@@ -135,20 +148,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                   iva: price*0.19,
                   total: price + (price*0.19)
                 })
+                // PETICIÓN PARA CREAR FACTURA
                 this.service.post('/bill/create', this.billForm.value).subscribe(
                   (res:any) => {
                     bill_id = res.bill.id
                     this.clickedProductsRows.forEach(item =>{
                       console.log('ITEM', item);
+                      // AGREGANDO PRODUCTOS AL DETALLE DE LA FACTURA
                       this.service.post('/bill/detail/create', {
                         bill_id: bill_id,
                         product_id: item.id
                       }).subscribe(
                         (res:any) => 
                         {
-                          console.log('RESPUESTA FINAL', res)
+                          // LIMPIAR FORMULARIO DE CLIENTE
                           this.clientForm.reset()
+                          // LIMPIAR CARRITO
                           this.clickedProductsRows.clear()
+                          // ACTUALIZAR FACTURAS
                           this.getBills()
                         }
                       )
@@ -168,24 +185,30 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    // INICIALIZAR CLASIFICADORES Y PAGINADORES PARA LAS TABLAS DE MATERIAL
     this.billDataSource.sort = this.billSort;
     this.billDataSource.paginator = this.billPaginator;
     this.productDataSource.sort = this.productSort;
     this.productDataSource.paginator = this.productPaginator;
   }
 
-
+  // CREAR PRODUCTOS
   createProduct() {
+    // ACTIVAR CARGANDO DE SECCIONES Y BOTONES 
     this.isLoading = true;
     this.loadingProductForm = true;
     this.service.post('/product/create', this.productForm.value).subscribe(
       (res:any) => {
         console.log('create product response', res);
+        // REGRESAR A LA VISTA DE FACTURACIÓN
         this.view = '';
+        // VOLVER A LISTAR PRODUCTOS
         this.listProducts();
         this.isLoading = false;
         this.loadingProductForm = false;
+        // LIMPIAR FORMULARIO DE PRODUCTO
         this.productForm.reset()
+        // MOSTRAR DIALOGO/ALERTA DE ÉXITO
         swal.fire('Exito!', 'Producto creado.')
       },
       (err:any) => {
@@ -196,12 +219,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     )
   }
 
+  // ACTUALIZAR PRODUCTO
   updateProduct() {
     this.loadingProductForm = true;
-    console.log('PRODUCT FORM', this.productForm.value)
+    // PETICION ACTUALIZAR
     this.service.patch(`/product/update/${this.productUpdateId}`, this.productForm.value).subscribe(
       (res:any) => {
+        // VOLVER A LISTAR CON LOS NUEVOS VALORES
         this.listProducts();
+        // REGRESAR A LA VISTA DE FACTURACIÓN
         this.view = '';
         this.loadingProductForm = false;
       },
@@ -211,29 +237,36 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     )
   }
 
+  // HACER VISIBLE LA VENTANA MODAL CON EL FORMULARIO PARA EDITAR UN PRODUCTO
   editProductView(id:number) {
     this.productUpdateId = id;
+    // NOMBRE DE LA VISTA PARA OCULTAR/MOSTRAR COMPONENTES 
     this.view = 'UPDATE_PRODUCT'
+    // ACTIVAR CARGANDO
     this.loadingProductForm = true;
     console.log(id)
     this.service.get(`/product/${id}`).subscribe(
       (res:any) => {
         res = res.product
         console.log('PRODUCT', res)
+        // LLENAR FORMULARIO CON LA RESPUESTA DE LA PETICIÓN
         this.productForm.patchValue({
           name: res.name,
           price: res.price,
           description: res.description
         })
+        // DESACTIVAR CARGANDO
         this.loadingProductForm = false;
       },
       (err:any) => {
+        // MANEJO DE ERRORES
         console.log('Error consultando producto', err)
         this.loadingProductForm = false;
       }
     )
   }
 
+  // LISTAR TODOS LOS PRODUCTOS
   listProducts() {
     this.loadingProducts = true;
     this.service.get('/product/list').subscribe(
@@ -251,6 +284,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     )
   }
 
+  // MÉTODO BORRAR PRODUCTO
   deleteProduct(id: number, name: string) {
     swal.fire({
       title: `Desea borrar el item #${id}: ${name}?`,
@@ -272,6 +306,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     })
   }
 
+  // VALIDACIÓN POR SI UN CLIENTE YA SE ENCUNTRA REGISTRADO
   validateClientDocument(document: number) {
     this.service.get(`/client/${document}`).subscribe(
       (res: any) => {
@@ -291,6 +326,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // LISTAR TODAS LAS FACTURAS
   getBills() {
     this.loadingBills = true;
     this.service.get('/bill/list').subscribe(
@@ -307,6 +343,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     )
   }
 
+  // LISTAR DETALLES DE UNA FACTURA
   getDetails(id:number) {
     this.loadingDetails = true;
     this.billDetail = {};
@@ -360,6 +397,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     )
   }
 
+  // SUMATORIA DE TODOS LOS ITEMS DEL CARRITO
   sumTotal(){
     let total: number = 0
     this.clickedProductsRows.forEach(elm => {
@@ -368,6 +406,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     return total;
   }
 
+  // MÉTODO PARA BORRAR FACTURAS
   deleteBill(id:number) {
     swal.fire({
       title: `Desea borrar el item #${id}`,
@@ -390,25 +429,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     })
   }
 
+  // FILTRO PARA BUSCAR EN LA TABLA DE PRODUCTOS
   productSearchFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.productDataSource.filter = filterValue.trim().toLowerCase();
   }
 
+  // FILTRO PARA BUSCAR EN LA TABLA DE FACTURAS
   billSearchFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.billDataSource.filter = filterValue.trim().toLowerCase();
   }
 
-
+  // HACER VISIBLE LA VENTANA DE CREAR PRODUCTO
   showCreateProductView(): void {
     this.view = 'CREATE_PRODUCT';
   }
 
+  // DISPARAR ALERTAS PARA INFORMACIÓN DEL USUARIO
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action);
   }
 
+  // CERRAR SESIÓN
   logout() {
     this.auth.logout();
     this.openSnackBar('Hasta Pronto :)', 'listo');

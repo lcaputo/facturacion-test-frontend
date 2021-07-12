@@ -51,9 +51,12 @@ export class AuthService {
   }
 
   private checkToken(): void {
+    // OBTENER USUARIO DEL SESSION STORAGE
     const user = JSON.parse(sessionStorage.getItem('user')!) || null;
 
+    // VALIDAR QUE NO ESTE VACIO
     if (user) {
+      // VALIDAR EL TOKEN CON AYUDA DE JWTHELPER
       const isExpired = helper.isTokenExpired(user.token);
 
       if (isExpired) {
@@ -65,6 +68,7 @@ export class AuthService {
   }
 
   public isTokenExpired() {
+    // VERIFICAR QUE EL TOKEN NO HAYA EXPIRADO
     const user = JSON.parse(sessionStorage.getItem('user') || '');
     if (user) {
       const isExpired = helper.isTokenExpired(user.token);
@@ -77,6 +81,7 @@ export class AuthService {
     return true;
   }
 
+  // GUARDAR TOKEN EN EL SESSION STORAGE DEL NAVEGADOR
   private saveInSessionStorage(user: UserResponse): void {
     const { userId, message, ...rest } = user;
     sessionStorage.setItem('user', JSON.stringify(rest));
@@ -105,6 +110,7 @@ export class AuthService {
       );
   }
 
+  // VALIDAR SI EXISTE UN TOKEN ALMACENADO
   isAuthenticated(): boolean {
     const user = sessionStorage.getItem('user');
     console.log('usuario',user)

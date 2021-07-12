@@ -22,6 +22,7 @@ export class RegisterComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // FORMUALRIO DE REGISTRO
     this.form = this.fb.group({
       name: ['', [
         Validators.required
@@ -42,6 +43,7 @@ export class RegisterComponent implements OnInit {
     })
   }
 
+  // ALERTAS
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action);
   }

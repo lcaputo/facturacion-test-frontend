@@ -26,10 +26,13 @@ export class LoginComponent implements OnInit {
     ) {    }
 
     ngOnInit() {
+        // VALIDAR SI YA HAY UNA SESIÓN
         if ( this.auth.isAuthenticated() ) {
+            // SI HAY SESIÓN REDIRIGIR AL DASHBOARD
             this.router.navigate(['dashboard'])
         }
         this.form = this.fb.group({
+            // FORMULARIO INICIO DE SESIÓN
             email: ['', [
                 Validators.required, 
                 Validators.email
@@ -58,6 +61,7 @@ export class LoginComponent implements OnInit {
         )
     }
 
+    // MOSTRAR ALERTAS
     openSnackBar(message: string, action: string) {
         this._snackBar.open(message, action);
       }
